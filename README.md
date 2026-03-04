@@ -1,8 +1,9 @@
 
-# FurStay: PetSitting Service 🐾
+![FurStay Logo](public\furstay-logo.png)
 
+# **FurStay:** PetSitting Service Platform
 
-## 1. Project Description
+## **Project Description**
 
 **FurStay** is a modern, clean, and reliable pet-sitting platform designed to connect pet owners with professional sitters. Our mission is to provide a "home away from home" experience for pets while ensuring absolute peace of mind for their owners through a verified and secure system.
 
@@ -10,17 +11,7 @@ The platform handles everything from pet profile management and sitter discovery
 
 ---
 
-## 2. System Architecture Overview
-
-FurStay utilizes a **Layered Architecture** within a **Next.js Monolith** structure. This choice ensures high development velocity and end-to-end type safety.
-
-* **Presentation Layer:** Built with Next.js (App Router) and React Server Components for optimized performance.
-* **Business Logic Layer:** Encapsulates core rules such as the **Booking State Machine** and the **Payment Strategy Pipeline**.
-* **Data Access Layer:** Powered by **Prisma ORM**, providing a type-safe interface to our **PostgreSQL** database.
-
----
-
-## 3. User Roles & Permissions
+## **User Roles & Permissions**
 
 Following the project requirements, the system supports three distinct roles:
 
@@ -44,27 +35,62 @@ Following the project requirements, the system supports three distinct roles:
 
 ---
 
-## 4. Technology Stack
+## **System Achitecture Overview**
 
-* **Framework:** Next.js 14+ (App Router)
-* **Language:** TypeScript
-* **Database:** PostgreSQL
-* **ORM:** Prisma
-* **Authentication:** NextAuth.js (Role-Based Access Control)
-* **Styling:** Tailwind CSS & Shadcn UI
-* **Infrastructure:** Docker & Docker Compose
+FurStay utilizes a **Layered Architecture** within a **Next.js Monolith** structure. This choice ensures high development velocity and end-to-end type safety.
+
+* **Presentation Layer:** Built with Next.js (App Router) and React Server Components for optimized performance.
+* **Business Logic Layer:** Encapsulates core rules such as the **Booking State Machine** and the **Payment Strategy Pipeline**.
+* **Data Access Layer:** Powered by **Prisma ORM**, providing a type-safe interface to our **PostgreSQL** database.
+
+![FurStay Architecture Diagram](public\furstay-architecture-overview.png)
+
+
+### Container Level (Infrastructure)
+
+ * **Container 1: Docker Compose**: The entire application infrastructure is orchestrated using Docker Compose.
+   * **Benefits:** This ensures environment parity (Portability), uses Infrastructure as Code (IaC) for database setup, and allows for future Scalability. 
+
+### Application Container (Next.js Application)
+
+ * **Component 2: Next.js (App Router)**: The core application is built with Next.js using the App Router. It supports full-stack development within a single unit.
+ * **Cross-Cutting Security Layer:** **NextAuth.js & middleware.ts**: Implement secure login/logout, user authentication, and role-based authorization (RBAC). This controls access based on user permissions for Admin, Sitter, and Owner roles.
+
+###  Inside the Next.js App (Layered Architecture)
+
+1. **Presentation Layer (Frontend)**:
+  * **Technologies:** Next.js Client Components, Tailwind CSS, Shadcn UI.
+  * **Function:** Manages UI and front-end state.
+  * **Design Practices:** Includes UI Components based on Atomic Design and reusable components.
+
+2. **Logic Layer (Backend/Server)**:
+  * **Technologies:** Next.js Server Actions, API Routes, TypeScript.
+  * **Functions:** Processes business logic (e.g., checking sitter availability).
+  * **Specific Patterns Implemented:**
+    * **State Machine Architecture:** Explicitly manages booking statuses (e.g., Pending -> Confirmed -> In Progress -> Completed).
+    * **Strategy Pattern (Payment Pipeline):** Decouples payment logic to support various providers (e.g., PromptPay, TrueMoney, Credit Card) via a Strategy or Adapter pattern.
+
+3. **Data Access Layer**:
+  * **Technology:** Prisma ORM.
+  * **Function:** Communicates securely with the database, generating types automatically, and protecting against SQL Injection.
+
+### Data Container (Database)
+
+  * **Component 3: PostgreSQL Database**: A relational SQL database is used to store structured data.
+  * **Database Schema:** The database design includes tables for **User**, **Pet**, **SitterProfile**, and **Booking**, supporting relationships like 1 User : N Pets.
+
 
 ---
 
-## 5. Architecture Characteristics
+## **Architecture Characteristics**
 
 * **Security:** Implemented via Next.js Middleware to enforce Role-Based Access Control (RBAC) at the edge.
 * **Maintainability:** We use the **Strategy Pattern** for our Payment Pipeline, allowing us to plug in different payment providers (e.g., PromptPay, Stripe) without altering core booking logic.
-* **Reliability:** A **State Machine** manages booking transitions (Pending → Confirmed → In Progress → Completed) to ensure data consistency and prevent illegal state changes.
+* **Reliability:** A **State Machine** manages booking transitions **(Pending → Confirmed → In Progress → Completed)** to ensure data consistency and prevent illegal state changes.
 
 ---
 
-## 6. Pros & Cons of Selected Architecture
+## **Pros & Cons of Selected Architecture**
 
 ### Pros
 
@@ -79,7 +105,7 @@ Following the project requirements, the system supports three distinct roles:
 
 ---
 
-## 7. Project Structure
+## **Project Structure**
 
 ```text
 /furstay
@@ -99,7 +125,7 @@ Following the project requirements, the system supports three distinct roles:
 
 ---
 
-## 8. Installation & Setup (via Docker)
+## **Installation & Setup (via Docker)**
 
 ### Prerequisites
 
@@ -136,4 +162,3 @@ npx prisma migrate dev
 Open [http://localhost:3000](https://www.google.com/search?q=http://localhost:3000) in your browser.
 
 ---
-### **FurStay**, Happy Day Happy Pet.
