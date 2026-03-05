@@ -1,5 +1,5 @@
 
-![FurStay Logo](public\furstay-logo.png)
+![FurStay Logo](public/furstay-logo.png)
 
 # **FurStay:** PetSitting Service Platform
 
@@ -43,7 +43,7 @@ FurStay utilizes a **Layered Architecture** within a **Next.js Monolith** struct
 * **Business Logic Layer:** Encapsulates core rules such as the **Booking State Machine** and the **Payment Strategy Pipeline**.
 * **Data Access Layer:** Powered by **Prisma ORM**, providing a type-safe interface to our **PostgreSQL** database.
 
-![FurStay Architecture Diagram](public\furstay-architecture-overview.png)
+![FurStay Architecture Diagram](public/furstay-architecture-overview.png)
 
 
 ### Container Level (Infrastructure)
