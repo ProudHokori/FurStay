@@ -5,6 +5,7 @@ generator client {
 
 datasource db {
   provider = "postgresql"
+  url      = env("DATABASE_URL")
 }
 
 enum Role {
@@ -21,9 +22,11 @@ enum VerificationStatus {
 
 enum JobStatus {
   OPEN
+  FUNDED
   IN_PROGRESS
   COMPLETED
   CANCELLED
+  REMOVED
 }
 
 enum ApplicationStatus {
@@ -41,56 +44,53 @@ model User {
   role                 Role
   createdAt            DateTime              @default(now())
   updatedAt            DateTime              @updatedAt
-
   pets                 Pet[]
   sitterProfile        SitterProfile?
   verificationRequests VerificationRequest[]
   jobPosts             JobPost[]             @relation("OwnerJobPosts")
-  jobApplications      JobApplication[]
+  jobApplications      JobApplication[]      @relation("SitterApplications")
+  workProofs           WorkProof[]           @relation("SitterProofs")
 }
 
 model Pet {
-  id          String    @id @default(cuid())
-  name        String
-  type        String
-  breed       String?
-  age         Int?
-  notes       String?
-  ownerId     String
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-
-  owner       User      @relation(fields: [ownerId], references: [id], onDelete: Cascade)
-  jobPosts    JobPost[]
+  id        String   @id @default(cuid())
+  name      String
+  type      String
+  breed     String?
+  age       Int?
+  notes     String?
+  ownerId   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  owner     User     @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  jobPosts  JobPost[]
 }
 
 model SitterProfile {
-  id          String    @id @default(cuid())
-  userId      String    @unique
-  bio         String?
-  experience  String?
-  isVerified  Boolean   @default(false)
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-
-  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id         String   @id @default(cuid())
+  userId     String   @unique
+  bio        String?
+  experience String?
+  isVerified Boolean  @default(false)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model VerificationRequest {
-  id           String              @id @default(cuid())
+  id           String             @id @default(cuid())
   userId       String
   documentUrl  String?
   note         String?
-  status       VerificationStatus  @default(PENDING)
+  status       VerificationStatus @default(PENDING)
   reviewedById String?
-  createdAt    DateTime            @default(now())
-  updatedAt    DateTime            @updatedAt
-
-  user         User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt    DateTime           @default(now())
+  updatedAt    DateTime           @updatedAt
+  user         User               @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model JobPost {
-  id               String             @id @default(cuid())
+  id               String          @id @default(cuid())
   ownerId          String
   petId            String
   title            String
@@ -99,39 +99,37 @@ model JobPost {
   startDate        DateTime
   endDate          DateTime
   paymentAmount    Float
-  status           JobStatus          @default(OPEN)
+  status           JobStatus       @default(OPEN)
   selectedSitterId String?
-  createdAt        DateTime           @default(now())
-  updatedAt        DateTime           @updatedAt
-
-  owner            User               @relation("OwnerJobPosts", fields: [ownerId], references: [id], onDelete: Cascade)
-  pet              Pet                @relation(fields: [petId], references: [id], onDelete: Cascade)
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime        @updatedAt
+  owner            User            @relation("OwnerJobPosts", fields: [ownerId], references: [id], onDelete: Cascade)
+  pet              Pet             @relation(fields: [petId], references: [id], onDelete: Cascade)
   applications     JobApplication[]
   workProofs       WorkProof[]
 }
 
 model JobApplication {
-  id          String             @id @default(cuid())
-  jobPostId   String
-  sitterId    String
-  message     String?
-  status      ApplicationStatus  @default(PENDING)
-  createdAt   DateTime           @default(now())
-  updatedAt   DateTime           @updatedAt
-
-  jobPost     JobPost            @relation(fields: [jobPostId], references: [id], onDelete: Cascade)
-  sitter      User               @relation(fields: [sitterId], references: [id], onDelete: Cascade)
+  id        String            @id @default(cuid())
+  jobPostId String
+  sitterId  String
+  message   String?
+  status    ApplicationStatus @default(PENDING)
+  createdAt DateTime          @default(now())
+  updatedAt DateTime          @updatedAt
+  jobPost   JobPost           @relation(fields: [jobPostId], references: [id], onDelete: Cascade)
+  sitter    User              @relation("SitterApplications", fields: [sitterId], references: [id], onDelete: Cascade)
 
   @@unique([jobPostId, sitterId])
 }
 
 model WorkProof {
-  id          String    @id @default(cuid())
+  id          String   @id @default(cuid())
   jobPostId   String
   sitterId    String
   proofText   String?
   imageUrl    String?
-  submittedAt DateTime  @default(now())
-
-  jobPost     JobPost   @relation(fields: [jobPostId], references: [id], onDelete: Cascade)
+  submittedAt DateTime @default(now())
+  jobPost     JobPost  @relation(fields: [jobPostId], references: [id], onDelete: Cascade)
+  sitter      User     @relation("SitterProofs", fields: [sitterId], references: [id], onDelete: Cascade)
 }

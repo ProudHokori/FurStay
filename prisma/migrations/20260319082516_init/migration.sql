@@ -1,11 +1,27 @@
 -- CreateEnum
+CREATE TYPE "Role" AS ENUM ('OWNER', 'SITTER', 'ADMIN');
+
+-- CreateEnum
 CREATE TYPE "VerificationStatus" AS ENUM ('PENDING', 'APPROVED', 'REJECTED');
 
 -- CreateEnum
-CREATE TYPE "JobStatus" AS ENUM ('OPEN', 'IN_PROGRESS', 'COMPLETED', 'CANCELLED');
+CREATE TYPE "JobStatus" AS ENUM ('OPEN', 'FUNDED', 'IN_PROGRESS', 'COMPLETED', 'CANCELLED', 'REMOVED');
 
 -- CreateEnum
 CREATE TYPE "ApplicationStatus" AS ENUM ('PENDING', 'ACCEPTED', 'REJECTED', 'WITHDRAWN');
+
+-- CreateTable
+CREATE TABLE "User" (
+    "id" TEXT NOT NULL,
+    "email" TEXT NOT NULL,
+    "password" TEXT NOT NULL,
+    "name" TEXT NOT NULL,
+    "role" "Role" NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "User_pkey" PRIMARY KEY ("id")
+);
 
 -- CreateTable
 CREATE TABLE "Pet" (
@@ -94,6 +110,9 @@ CREATE TABLE "WorkProof" (
 );
 
 -- CreateIndex
+CREATE UNIQUE INDEX "User_email_key" ON "User"("email");
+
+-- CreateIndex
 CREATE UNIQUE INDEX "SitterProfile_userId_key" ON "SitterProfile"("userId");
 
 -- CreateIndex
@@ -122,3 +141,6 @@ ALTER TABLE "JobApplication" ADD CONSTRAINT "JobApplication_sitterId_fkey" FOREI
 
 -- AddForeignKey
 ALTER TABLE "WorkProof" ADD CONSTRAINT "WorkProof_jobPostId_fkey" FOREIGN KEY ("jobPostId") REFERENCES "JobPost"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "WorkProof" ADD CONSTRAINT "WorkProof_sitterId_fkey" FOREIGN KEY ("sitterId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
