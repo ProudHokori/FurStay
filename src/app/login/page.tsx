@@ -1,48 +1,23 @@
-"use client";
+import Link from "next/link";
+import { LoginForm } from "@/components/auth/login-form";
+import { Card } from "@/components/ui/card";
+import { getSession } from "@/lib/session";
+import { redirectToRoleHome } from "@/lib/route-helpers";
 
-import { useState } from "react";
-import { signIn } from "next-auth/react";
-
-export default function LoginPage() {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
-
-    await signIn("credentials", {
-      email,
-      password,
-      callbackUrl: "/dashboard",
-    });
-  }
+export default async function LoginPage() {
+  const session = await getSession();
+  if (session) redirectToRoleHome(session.role);
 
   return (
-    <main style={{ padding: "2rem" }}>
-      <h1>Login</h1>
-
-      <form
-        onSubmit={handleSubmit}
-        style={{ display: "grid", gap: "1rem", maxWidth: "320px" }}
-      >
-        <input
-          type="email"
-          placeholder="Email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          required
-        />
-
-        <input
-          type="password"
-          placeholder="Password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          required
-        />
-
-        <button type="submit">Login</button>
-      </form>
+    <main className="mx-auto flex min-h-screen max-w-lg items-center px-4 py-16">
+      <Card className="w-full space-y-5">
+        <div>
+          <h1 className="text-2xl font-semibold">Login to FurStay</h1>
+          <p className="mt-2 text-sm text-stone-500">Use a demo account or create your own owner/sitter account.</p>
+        </div>
+        <LoginForm />
+        <p className="text-sm text-stone-500">No account yet? <Link href="/register" className="text-stone-900 underline">Create one</Link></p>
+      </Card>
     </main>
   );
 }
