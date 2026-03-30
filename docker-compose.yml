@@ -12,5 +12,48 @@ services:
     volumes:
       - furstay_postgres_data:/var/lib/postgresql/data
 
+  web:
+    image: node:20
+    container_name: furstay-web
+    working_dir: /app
+    restart: unless-stopped
+    command: sh -c "npm install && npx prisma generate && npm run dev -- --hostname 0.0.0.0"
+    volumes:
+      - .:/app
+      - furstay_node_modules:/app/node_modules
+    ports:
+      - "3001:3000"
+    environment:
+      DATABASE_URL: postgresql://postgres:1234@postgres:5432/furstay_db
+      NODE_ENV: development
+    depends_on:
+      - postgres
+
+  studio:
+    image: node:20
+    container_name: furstay-studio
+    working_dir: /app
+    restart: unless-stopped
+    command: sh -c "npm install && npx prisma studio --hostname 0.0.0.0 --port 5555"
+    volumes:
+      - .:/app
+      - furstay_node_modules:/app/node_modules
+    ports:
+      - "5555:5555"
+    environment:
+      DATABASE_URL: postgresql://postgres:1234@postgres:5432/furstay_db
+    depends_on:
+      - postgres
+
+  adminer:
+    image: adminer
+    container_name: furstay-adminer
+    restart: unless-stopped
+    ports:
+      - "8081:8080"
+    depends_on:
+      - postgres
+
 volumes:
   furstay_postgres_data:
+  furstay_node_modules:
