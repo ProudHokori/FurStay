@@ -1,15 +1,15 @@
-import AuthSessionProvider from "@/components/providers/session-provider";
+import type { Metadata } from "next";
+import "./globals.css";
 
-export default function RootLayout({
-  children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
+export const metadata: Metadata = {
+  title: "FurStay",
+  description: "Pet sitter marketplace built for the software architecture project",
+};
+
+export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="en">
-      <body>
-        <AuthSessionProvider>{children}</AuthSessionProvider>
-      </body>
+      <body>{children}</body>
     </html>
   );
 }
