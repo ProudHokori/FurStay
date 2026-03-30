@@ -1,0 +1,22 @@
+import { AppShell } from "@/components/layout/app-shell";
+import { Card } from "@/components/ui/card";
+import { prisma } from "@/lib/prisma";
+import { requireRole } from "@/lib/session";
+
+export default async function OwnerDashboardPage() {
+  const session = await requireRole(["OWNER"]);
+  const [pets, jobs] = await Promise.all([
+    prisma.pet.findMany({ where: { ownerId: session.sub } }),
+    prisma.jobPost.findMany({ where: { ownerId: session.sub } }),
+  ]);
+  return (
+    <AppShell role="OWNER" name={session.name}>
+      <h1 className="text-3xl font-bold">Owner dashboard</h1>
+      <div className="grid gap-4 md:grid-cols-3">
+        <Card><p className="text-sm text-stone-500">Pets</p><p className="mt-2 text-3xl font-semibold">{pets.length}</p></Card>
+        <Card><p className="text-sm text-stone-500">Jobs posted</p><p className="mt-2 text-3xl font-semibold">{jobs.length}</p></Card>
+        <Card><p className="text-sm text-stone-500">Open jobs</p><p className="mt-2 text-3xl font-semibold">{jobs.filter((job) => job.status === "OPEN").length}</p></Card>
+      </div>
+    </AppShell>
+  );
+}

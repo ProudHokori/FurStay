@@ -1,0 +1,101 @@
+import { AppShell } from "@/components/layout/app-shell";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Select } from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
+import { confirmCompletionAction, createJobAction, selectSitterAction } from "@/lib/actions/owner-actions";
+import { formatDate } from "@/lib/utils";
+import { prisma } from "@/lib/prisma";
+import { requireRole } from "@/lib/session";
+
+export default async function OwnerJobsPage() {
+  const session = await requireRole(["OWNER"]);
+  const [pets, jobs] = await Promise.all([
+    prisma.pet.findMany({ where: { ownerId: session.sub }, orderBy: { createdAt: "desc" } }),
+    prisma.jobPost.findMany({
+      where: { ownerId: session.sub },
+      include: { pet: true, applications: { include: { sitter: true }, orderBy: { createdAt: "desc" } }, workProofs: true },
+      orderBy: { createdAt: "desc" },
+    }),
+  ]);
+
+  return (
+    <AppShell role="OWNER" name={session.name}>
+      <h1 className="text-3xl font-bold">Job management</h1>
+      <Card>
+        <h2 className="mb-4 text-lg font-semibold">Post a new job</h2>
+        <form action={createJobAction} className="grid gap-3 md:grid-cols-2">
+          <Select name="petId" required defaultValue="">
+            <option value="" disabled>Select a pet</option>
+            {pets.map((pet) => <option key={pet.id} value={pet.id}>{pet.name}</option>)}
+          </Select>
+          <Input name="title" placeholder="Job title" required />
+          <div className="md:col-span-2"><Textarea name="description" placeholder="Describe the work, schedule, feeding, walking, medication, etc." required /></div>
+          <Input name="location" placeholder="Location" />
+          <Input name="paymentAmount" type="number" placeholder="Payment amount" required />
+          <Input name="startDate" type="datetime-local" required />
+          <Input name="endDate" type="datetime-local" required />
+          <Button type="submit" className="md:col-span-2 w-fit">Create job</Button>
+        </form>
+      </Card>
+      <div className="space-y-4">
+        {jobs.map((job) => (
+          <Card key={job.id}>
+            <div className="flex flex-col gap-4">
+              <div>
+                <div className="flex items-center justify-between gap-4">
+                  <h3 className="text-lg font-semibold">{job.title}</h3>
+                  <span className="rounded-full bg-stone-100 px-3 py-1 text-xs font-semibold">{job.status}</span>
+                </div>
+                <p className="mt-1 text-sm text-stone-500">Pet: {job.pet.name} · {formatDate(job.startDate)} → {formatDate(job.endDate)}</p>
+                <p className="mt-3 text-sm text-stone-600">{job.description}</p>
+              </div>
+
+              <div className="grid gap-4 md:grid-cols-2">
+                <div>
+                  <h4 className="mb-2 font-medium">Applicants</h4>
+                  <div className="space-y-3">
+                    {job.applications.length === 0 ? <p className="text-sm text-stone-500">No applications yet.</p> : null}
+                    {job.applications.map((application) => (
+                      <div key={application.id} className="rounded-xl border border-stone-200 p-3 text-sm">
+                        <p className="font-medium">{application.sitter.name}</p>
+                        <p className="text-stone-500">{application.message || "No message"}</p>
+                        <p className="mt-1 text-xs text-stone-400">Status: {application.status}</p>
+                        {job.status === "OPEN" ? (
+                          <form action={selectSitterAction} className="mt-2">
+                            <input type="hidden" name="jobPostId" value={job.id} />
+                            <input type="hidden" name="sitterId" value={application.sitter.id} />
+                            <Button type="submit">Accept and mark funded</Button>
+                          </form>
+                        ) : null}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                <div>
+                  <h4 className="mb-2 font-medium">Work proofs</h4>
+                  <div className="space-y-3">
+                    {job.workProofs.length === 0 ? <p className="text-sm text-stone-500">No proof submitted yet.</p> : null}
+                    {job.workProofs.map((proof) => (
+                      <div key={proof.id} className="rounded-xl border border-stone-200 p-3 text-sm">
+                        <p>{proof.proofText || "No text provided"}</p>
+                        {proof.imageUrl ? <a href={proof.imageUrl} className="mt-2 block text-stone-900 underline">Open evidence link</a> : null}
+                      </div>
+                    ))}
+                    {job.workProofs.length > 0 && job.status !== "COMPLETED" ? (
+                      <form action={confirmCompletionAction}>
+                        <input type="hidden" name="jobPostId" value={job.id} />
+                        <Button type="submit">Confirm completion</Button>
+                      </form>
+                    ) : null}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </Card>
+        ))}
+      </div>
+    </AppShell>
+  );
+}
