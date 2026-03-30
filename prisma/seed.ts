@@ -58,7 +58,7 @@ async function main() {
       id: "demo-job",
       ownerId: owner.id,
       petId: pet.id,
-      title: "Need a weekend dog sitter",
+      title: "Need a weekend dog sitter.",
       description: "Take care of Mochi from Saturday morning to Sunday evening.",
       location: "Bangkok",
       startDate: new Date(),
