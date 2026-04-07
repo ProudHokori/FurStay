@@ -1,12 +1,241 @@
 @import "tailwindcss";
 
 :root {
-  --background: #fafaf9;
-  --foreground: #1c1917;
+  --fur-dark: #4f3d33;
+  --fur-brown: #7f5e47;
+  --fur-clay: #b36d51;
+  --fur-beige: #ecd2ad;
+  --fur-cream: #f5ebe0;
+  --fur-ivory: #fff8ed;
+  --fur-pink: #ebabab;
+
+  --background: #fff8ed;
+  --foreground: #6f5649;
+
+  --surface: #f5ebe0;
+  --surface-2: #ffffff;
+  --surface-3: #ecd2ad;
+
+  --border: #f5ebe0;
+  --border-strong: #b89b84;
+
+  --primary: #7f5e47;
+  --primary-foreground: #fff8ed;
+  --primary-hover: #6f5649;
+
+  --secondary: #ecd2ad;
+  --secondary-foreground: #4f3d33;
+  --secondary-hover: #e3c59a;
+
+  --accent: #ebabab;
+  --accent-foreground: #4f3d33;
+
+  --muted: #efe6dc;
+  --muted-foreground: #7b675b;
+
+  --input: #fffdf9;
+  --ring: rgba(179, 109, 81, 0.28);
+
+  --success: #7ecf98;
+  --warning: #f7d071;
+  --info: #5972a4;
+  --danger: #c97b7b;
+
+  --shadow-sm: 0 4px 12px rgba(79, 61, 51, 0.08);
+  --shadow-md: 0 10px 30px rgba(79, 61, 51, 0.12);
+
+  --radius-sm: 10px;
+  --radius-md: 14px;
+  --radius-lg: 18px;
+  --radius-xl: 24px;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
 }
 
 body {
-  background: var(--background);
+  margin: 0;
+  min-height: 100vh;
+  background-color: var(--background);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+button,
+input,
+textarea,
+select {
+  font: inherit;
+}
+
+img,
+svg {
+  display: block;
+}
+
+::selection {
+  background: rgba(179, 109, 81, 0.22);
+  color: var(--foreground);
+}
+
+:focus-visible {
+  outline: 3px solid var(--ring);
+  outline-offset: 2px;
+}
+
+@layer base {
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    margin: 0;
+    color: var(--fur-dark);
+    line-height: 1.15;
+  }
+
+  p {
+    margin: 0;
+    line-height: 1.65;
+  }
+
+  main {
+    color: var(--foreground);
+  }
+}
+
+@layer utilities {
+  .bg-app {
+    background-color: var(--background);
+  }
+
+  .bg-surface {
+    background-color: var(--surface);
+  }
+
+  .bg-surface-2 {
+    background-color: var(--surface-2);
+  }
+
+  .bg-surface-3 {
+    background-color: var(--surface-3);
+  }
+
+  .text-app {
+    color: var(--foreground);
+  }
+
+  .text-muted {
+    color: var(--muted-foreground);
+  }
+
+  .border-app {
+    border-color: var(--border);
+  }
+
+  .border-app-strong {
+    border-color: var(--border-strong);
+  }
+
+  .shadow-app {
+    box-shadow: var(--shadow-sm);
+  }
+
+  .shadow-app-md {
+    box-shadow: var(--shadow-md);
+  }
+
+  .rounded-app {
+    border-radius: var(--radius-lg);
+  }
+
+  .rounded-app-xl {
+    border-radius: var(--radius-xl);
+  }
+
+  .badge-accent {
+    background-color: rgba(235, 171, 171, 0.25);
+    color: var(--fur-dark);
+  }
+
+  .page-soft-bg {
+    background:
+      radial-gradient(circle at top left, rgba(236, 210, 173, 0.18), transparent 28%),
+      radial-gradient(circle at top right, rgba(235, 171, 171, 0.12), transparent 24%),
+      linear-gradient(180deg, #fff8ed 0%, #f9f0e8 100%);
+  }
+}
+
+@layer components {
+  .btn-primary,
+  a.btn-primary,
+  button.btn-primary {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 9999px;
+    border: 1px solid transparent;
+    background-color: var(--primary);
+    background-image: none;
+    color: var(--primary-foreground) !important;
+    box-shadow: var(--shadow-sm);
+    transition:
+      background-color 0.2s ease,
+      transform 0.2s ease,
+      opacity 0.2s ease,
+      box-shadow 0.2s ease;
+  }
+
+  .btn-primary:hover {
+    background-color: var(--primary-hover);
+  }
+
+  .btn-primary:active {
+    transform: translateY(1px);
+  }
+
+  .btn-secondary,
+  a.btn-secondary,
+  button.btn-secondary {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 9999px;
+    border: 1px solid var(--border);
+    background-color: var(--surface);
+    background-image: none;
+    color: var(--fur-dark) !important;
+    box-shadow: var(--shadow-sm);
+    transition:
+      background-color 0.2s ease,
+      transform 0.2s ease,
+      opacity 0.2s ease,
+      box-shadow 0.2s ease,
+      border-color 0.2s ease;
+  }
+
+  .btn-secondary:hover {
+    background-color: var(--secondary-hover);
+    border-color: var(--border-strong);
+  }
+
+  .btn-secondary:active {
+    transform: translateY(1px);
+  }
 }

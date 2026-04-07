@@ -26,6 +26,9 @@ services:
     environment:
       DATABASE_URL: postgresql://postgres:1234@postgres:5432/furstay_db
       NODE_ENV: development
+      CHOKIDAR_USEPOLLING: "true"
+      CHOKIDAR_INTERVAL: "1000"
+      WATCHPACK_POLLING: "true"
     depends_on:
       - postgres
 
