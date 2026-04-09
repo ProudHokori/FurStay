@@ -37,6 +37,10 @@ export async function submitVerificationAction(formData: FormData) {
 export async function applyJobAction(formData: FormData) {
   const session = await requireRole(["SITTER"]);
   const jobPostId = String(formData.get("jobPostId"));
+
+  const job = await prisma.jobPost.findUnique({ where: { id: jobPostId }, select: { status: true } });
+  if (!job || job.status !== "OPEN") return { error: "This job is no longer accepting applications." };
+
   await prisma.jobApplication.upsert({
     where: { jobPostId_sitterId: { jobPostId, sitterId: session.sub } },
     update: { status: "PENDING", message: String(formData.get("message") || "") },

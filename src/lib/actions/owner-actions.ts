@@ -63,18 +63,50 @@ export async function selectSitterAction(formData: FormData) {
   const session = await requireRole(["OWNER"]);
   const jobPostId = String(formData.get("jobPostId"));
   const sitterId = String(formData.get("sitterId"));
-  await prisma.jobPost.updateMany({
-    where: { id: jobPostId, ownerId: session.sub },
-    data: { selectedSitterId: sitterId, status: "FUNDED" },
+
+  const job = await prisma.jobPost.findFirst({ where: { id: jobPostId, ownerId: session.sub } });
+  if (!job || job.status !== "OPEN") throw new Error("Job is no longer open.");
+
+  await prisma.jobPost.update({
+    where: { id: jobPostId },
+    data: { selectedSitterId: sitterId, status: "WAITING" },
   });
-  await prisma.jobApplication.updateMany({
-    where: { jobPostId },
-    data: { status: "REJECTED" },
-  });
+  // Accept selected application only — leave others PENDING until payment confirmed
   await prisma.jobApplication.updateMany({
     where: { jobPostId, sitterId },
     data: { status: "ACCEPTED" },
   });
+  revalidatePath("/owner/jobs");
+  revalidatePath("/sitter/jobs");
+}
+
+export async function confirmPaymentAction(formData: FormData) {
+  const session = await requireRole(["OWNER"]);
+  const jobPostId = String(formData.get("jobPostId"));
+
+  const job = await prisma.jobPost.findFirst({ where: { id: jobPostId, ownerId: session.sub } });
+  if (!job || job.status !== "WAITING") throw new Error("Job is not awaiting payment.");
+
+  await prisma.jobPost.update({ where: { id: jobPostId }, data: { status: "FUNDED" } });
+  // Now safe to reject all other PENDING applications
+  await prisma.jobApplication.updateMany({
+    where: { jobPostId, status: "PENDING" },
+    data: { status: "REJECTED" },
+  });
+  revalidatePath("/owner/jobs");
+  revalidatePath("/sitter/jobs");
+}
+
+export async function cancelJobAction(formData: FormData) {
+  const session = await requireRole(["OWNER"]);
+  const jobPostId = String(formData.get("jobPostId"));
+
+  const job = await prisma.jobPost.findFirst({ where: { id: jobPostId, ownerId: session.sub } });
+  if (!job) throw new Error("Job not found.");
+  if (job.status !== "OPEN") throw new Error("No refunds after payment has been initiated.");
+
+  await prisma.jobPost.update({ where: { id: jobPostId }, data: { status: "CANCELLED" } });
+  await prisma.jobApplication.updateMany({ where: { jobPostId }, data: { status: "REJECTED" } });
   revalidatePath("/owner/jobs");
   revalidatePath("/sitter/jobs");
 }

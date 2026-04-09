@@ -12,7 +12,7 @@ export default async function SitterJobsPage() {
   const [profile, jobs] = await Promise.all([
     prisma.sitterProfile.findUnique({ where: { userId: session.sub } }),
     prisma.jobPost.findMany({
-      where: { status: { in: ["OPEN", "FUNDED"] } },
+      where: { status: "OPEN" },
       include: { pet: true, owner: true, applications: true },
       orderBy: { createdAt: "desc" },
     }),

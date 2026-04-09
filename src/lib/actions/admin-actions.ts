@@ -30,3 +30,13 @@ export async function removeJobAction(formData: FormData) {
   revalidatePath("/admin/jobs");
   revalidatePath("/sitter/jobs");
 }
+
+export async function adminCancelJobAction(formData: FormData) {
+  await requireRole(["ADMIN"]);
+  const jobPostId = String(formData.get("jobPostId"));
+  await prisma.jobPost.update({ where: { id: jobPostId }, data: { status: "CANCELLED" } });
+  await prisma.jobApplication.updateMany({ where: { jobPostId }, data: { status: "REJECTED" } });
+  revalidatePath("/admin/jobs");
+  revalidatePath("/owner/jobs");
+  revalidatePath("/sitter/jobs");
+}
