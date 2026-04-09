@@ -37,7 +37,7 @@ export function AppShell({ role, name, children }: { role: Role; name: string; c
             ))}
           </nav>
           <form action={logoutAction} className="mt-6">
-            <button className="rounded-lg border border-stone-300 px-3 py-2 text-sm">Logout</button>
+            <button suppressHydrationWarning className="rounded-lg border border-stone-300 px-3 py-2 text-sm">Logout</button>
           </form>
         </aside>
         <main className="space-y-6">{children}</main>

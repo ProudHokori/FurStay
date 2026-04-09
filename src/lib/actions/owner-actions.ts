@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 import { requireRole } from "@/lib/session";
 import { petSchema } from "@/lib/validations/pet";
 import { jobSchema } from "@/lib/validations/job";
@@ -29,7 +30,7 @@ export async function deletePetAction(formData: FormData) {
   revalidatePath("/owner/pets");
 }
 
-export async function createJobAction(formData: FormData) {
+export async function createJobAction(_prevState: unknown, formData: FormData) {
   const session = await requireRole(["OWNER"]);
   const parsed = jobSchema.safeParse({
     petId: formData.get("petId"),
@@ -40,7 +41,7 @@ export async function createJobAction(formData: FormData) {
     endDate: formData.get("endDate"),
     paymentAmount: formData.get("paymentAmount"),
   });
-  if (!parsed.success) return { error: parsed.error.issues[0]?.message };
+  if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? "Invalid input" };
   await prisma.jobPost.create({
     data: {
       ownerId: session.sub,
@@ -55,7 +56,7 @@ export async function createJobAction(formData: FormData) {
   });
   revalidatePath("/owner/jobs");
   revalidatePath("/owner");
-  return { success: true };
+  redirect("/owner/jobs");
 }
 
 export async function selectSitterAction(formData: FormData) {

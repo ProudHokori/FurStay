@@ -1,10 +1,8 @@
 import { AppShell } from "@/components/layout/app-shell";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Select } from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
-import { confirmCompletionAction, createJobAction, selectSitterAction } from "@/lib/actions/owner-actions";
+import { NewJobForm } from "./new-job-form";
+import { confirmCompletionAction, selectSitterAction } from "@/lib/actions/owner-actions";
 import { formatDate } from "@/lib/utils";
 import { prisma } from "@/lib/prisma";
 import { requireRole } from "@/lib/session";
@@ -25,19 +23,7 @@ export default async function OwnerJobsPage() {
       <h1 className="text-3xl font-bold">Job management</h1>
       <Card>
         <h2 className="mb-4 text-lg font-semibold">Post a new job</h2>
-        <form action={createJobAction} className="grid gap-3 md:grid-cols-2">
-          <Select name="petId" required defaultValue="">
-            <option value="" disabled>Select a pet</option>
-            {pets.map((pet) => <option key={pet.id} value={pet.id}>{pet.name}</option>)}
-          </Select>
-          <Input name="title" placeholder="Job title" required />
-          <div className="md:col-span-2"><Textarea name="description" placeholder="Describe the work, schedule, feeding, walking, medication, etc." required /></div>
-          <Input name="location" placeholder="Location" />
-          <Input name="paymentAmount" type="number" placeholder="Payment amount" required />
-          <Input name="startDate" type="datetime-local" required />
-          <Input name="endDate" type="datetime-local" required />
-          <Button type="submit" className="md:col-span-2 w-fit">Create job</Button>
-        </form>
+        <NewJobForm pets={pets} />
       </Card>
       <div className="space-y-4">
         {jobs.map((job) => (
@@ -64,8 +50,8 @@ export default async function OwnerJobsPage() {
                         <p className="mt-1 text-xs text-stone-400">Status: {application.status}</p>
                         {job.status === "OPEN" ? (
                           <form action={selectSitterAction} className="mt-2">
-                            <input type="hidden" name="jobPostId" value={job.id} />
-                            <input type="hidden" name="sitterId" value={application.sitter.id} />
+                            <input suppressHydrationWarning type="hidden" name="jobPostId" value={job.id} />
+                            <input suppressHydrationWarning type="hidden" name="sitterId" value={application.sitter.id} />
                             <Button type="submit">Accept and mark funded</Button>
                           </form>
                         ) : null}
@@ -85,7 +71,7 @@ export default async function OwnerJobsPage() {
                     ))}
                     {job.workProofs.length > 0 && job.status !== "COMPLETED" ? (
                       <form action={confirmCompletionAction}>
-                        <input type="hidden" name="jobPostId" value={job.id} />
+                        <input suppressHydrationWarning type="hidden" name="jobPostId" value={job.id} />
                         <Button type="submit">Confirm completion</Button>
                       </form>
                     ) : null}
