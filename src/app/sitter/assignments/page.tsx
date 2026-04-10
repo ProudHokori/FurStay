@@ -49,6 +49,9 @@ export default async function SitterAssignmentsPage() {
                       {job.pet.name} · {formatDate(job.startDate)} → {formatDate(job.endDate)}
                     </p>
                     <p className="mt-1 text-xs text-stone-400">Owner: {job.owner.name}</p>
+                    {job.location && (
+                      <p className="mt-1 text-xs text-stone-600">📍 {job.location}</p>
+                    )}
                   </div>
                   <JobStatusBadge status={job.status} />
                 </div>
@@ -80,6 +83,9 @@ export default async function SitterAssignmentsPage() {
                       {job.pet.name} · {formatDate(job.startDate)} → {formatDate(job.endDate)}
                     </p>
                     <p className="mt-1 text-xs text-stone-400">Owner: {job.owner.name}</p>
+                    {job.location && (
+                      <p className="mt-1 text-xs text-stone-600">📍 {job.location}</p>
+                    )}
                   </div>
                   <JobStatusBadge status={job.status} />
                 </div>

@@ -45,7 +45,6 @@ export default async function SitterJobsPage() {
                   <p className="mt-1 text-sm text-stone-500">
                     {job.owner.name} · {formatDate(job.startDate)} → {formatDate(job.endDate)}
                   </p>
-                  {job.location && <p className="mt-1 text-xs text-stone-400">{job.location}</p>}
                   <p className="mt-2 text-sm text-stone-600">{job.description}</p>
                   <p className="mt-2 text-sm font-medium text-stone-800">฿{job.paymentAmount.toLocaleString()}</p>
 
