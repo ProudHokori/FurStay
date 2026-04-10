@@ -2,15 +2,18 @@ import { AppShell } from "@/components/layout/app-shell";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { reviewVerificationAction } from "@/lib/actions/admin-actions";
-import { prisma } from "@/lib/prisma";
+import { adminRepository } from "@/lib/repositories/admin-repository";
 import { requireRole } from "@/lib/session";
 
 export default async function AdminVerificationsPage() {
   const session = await requireRole(["ADMIN"]);
-  const requests = await prisma.verificationRequest.findMany({ include: { user: true }, orderBy: { createdAt: "desc" } });
+  const requests = await adminRepository.getPendingVerifications();
   return (
     <AppShell role="ADMIN" name={session.name}>
       <h1 className="text-3xl font-bold">Verification review</h1>
+      {requests.length === 0 && (
+        <Card><p className="text-sm text-stone-500">No pending verification requests.</p></Card>
+      )}
       <div className="space-y-4">
         {requests.map((request) => (
           <Card key={request.id}>
@@ -18,19 +21,24 @@ export default async function AdminVerificationsPage() {
               <div>
                 <h3 className="text-lg font-semibold">{request.user.name}</h3>
                 <p className="text-sm text-stone-500">{request.user.email}</p>
-                <p className="mt-3 text-sm text-stone-600">{request.note || "No note provided"}</p>
-                {request.documentUrl ? <a href={request.documentUrl} className="mt-2 inline-block text-sm underline">Open supporting document</a> : null}
+                {request.note && <p className="mt-3 text-sm text-stone-600">{request.note}</p>}
+                {request.documentUrl && (
+                  <a href={request.documentUrl} target="_blank" rel="noopener noreferrer" className="mt-2 inline-block text-sm text-stone-900 underline">
+                    Open resume / portfolio
+                  </a>
+                )}
+                <p className="mt-2 text-xs text-stone-400">Submitted {new Date(request.createdAt).toLocaleDateString()}</p>
               </div>
-              <div className="flex gap-2">
+              <div className="flex gap-2 shrink-0">
                 <form action={reviewVerificationAction}>
-                  <input type="hidden" name="requestId" value={request.id} />
-                  <input type="hidden" name="decision" value="APPROVE" />
+                  <input suppressHydrationWarning type="hidden" name="requestId" value={request.id} />
+                  <input suppressHydrationWarning type="hidden" name="decision" value="APPROVE" />
                   <Button type="submit">Approve</Button>
                 </form>
                 <form action={reviewVerificationAction}>
-                  <input type="hidden" name="requestId" value={request.id} />
-                  <input type="hidden" name="decision" value="REJECT" />
-                  <button className="rounded-lg border border-stone-300 px-4 py-2 text-sm font-medium">Reject</button>
+                  <input suppressHydrationWarning type="hidden" name="requestId" value={request.id} />
+                  <input suppressHydrationWarning type="hidden" name="decision" value="REJECT" />
+                  <Button type="submit" className="bg-red-700 hover:bg-red-600">Reject</Button>
                 </form>
               </div>
             </div>

@@ -1,22 +1,51 @@
 import { AppShell } from "@/components/layout/app-shell";
 import { Card } from "@/components/ui/card";
-import { prisma } from "@/lib/prisma";
+import { VerificationBanner } from "@/components/sitter/verification-banner";
+import { sitterRepository } from "@/lib/repositories/sitter-repository";
+import { jobRepository } from "@/lib/repositories/job-repository";
 import { requireRole } from "@/lib/session";
 
 export default async function SitterDashboardPage() {
   const session = await requireRole(["SITTER"]);
-  const [profile, applications, assignments] = await Promise.all([
-    prisma.sitterProfile.findUnique({ where: { userId: session.sub } }),
-    prisma.jobApplication.findMany({ where: { sitterId: session.sub } }),
-    prisma.jobPost.findMany({ where: { selectedSitterId: session.sub } }),
+  const [profile, applications, upcoming, awaitingConfirmation, history] = await Promise.all([
+    sitterRepository.getProfile(session.sub),
+    jobRepository.getApplicationsBySitter(session.sub),
+    jobRepository.getAssignmentsBySitter(session.sub).then((jobs) => jobs.filter((j) => j.status === "FUNDED")),
+    jobRepository.getAssignmentsBySitter(session.sub).then((jobs) => jobs.filter((j) => j.status === "IN_PROGRESS")),
+    jobRepository.getJobHistoryBySitter(session.sub),
   ]);
+
+  const activeCount = upcoming.length + awaitingConfirmation.length;
+  const avgRating = history.filter((j) => j.rating !== null).length > 0
+    ? (history.reduce((sum, j) => sum + (j.rating ?? 0), 0) / history.filter((j) => j.rating !== null).length).toFixed(1)
+    : null;
+
   return (
     <AppShell role="SITTER" name={session.name}>
-      <h1 className="text-3xl font-bold">Sitter dashboard</h1>
-      <div className="grid gap-4 md:grid-cols-3">
-        <Card><p className="text-sm text-stone-500">Verified</p><p className="mt-2 text-3xl font-semibold">{profile?.isVerified ? "Yes" : "No"}</p></Card>
-        <Card><p className="text-sm text-stone-500">Applications</p><p className="mt-2 text-3xl font-semibold">{applications.length}</p></Card>
-        <Card><p className="text-sm text-stone-500">Assignments</p><p className="mt-2 text-3xl font-semibold">{assignments.length}</p></Card>
+      <h1 className="text-3xl font-bold">Overview</h1>
+      <VerificationBanner verificationStatus={profile?.verificationStatus ?? null} />
+      <div className="grid gap-4 md:grid-cols-4">
+        <Card>
+          <p className="text-sm text-stone-500">Verification</p>
+          <p className="mt-2 text-lg font-semibold">{profile?.verificationStatus ?? "Not submitted"}</p>
+        </Card>
+        <Card>
+          <p className="text-sm text-stone-500">Applications</p>
+          <p className="mt-2 text-3xl font-semibold">{applications.length}</p>
+        </Card>
+        <Card>
+          <p className="text-sm text-stone-500">Active assignments</p>
+          <p className="mt-2 text-3xl font-semibold">{activeCount}</p>
+          <div className="mt-1 flex gap-3 text-xs text-stone-400">
+            <span>Upcoming: {upcoming.length}</span>
+            <span>Awaiting: {awaitingConfirmation.length}</span>
+          </div>
+        </Card>
+        <Card>
+          <p className="text-sm text-stone-500">Avg rating</p>
+          <p className="mt-2 text-3xl font-semibold">{avgRating ?? "—"}</p>
+          <p className="mt-1 text-xs text-stone-400">from {history.filter((j) => j.rating !== null).length} job{history.filter((j) => j.rating !== null).length !== 1 ? "s" : ""}</p>
+        </Card>
       </div>
     </AppShell>
   );

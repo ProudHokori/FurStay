@@ -5,30 +5,52 @@ import { redirect } from "next/navigation";
 import { requireRole } from "@/lib/session";
 import { petSchema } from "@/lib/validations/pet";
 import { jobSchema } from "@/lib/validations/job";
+import { petRepository } from "@/lib/repositories/pet-repository";
 import { prisma } from "@/lib/prisma";
 
-export async function createPetAction(formData: FormData) {
+// ─── Pets ────────────────────────────────────────────────────────────────────
+
+export async function createPetAction(_prevState: unknown, formData: FormData) {
   const session = await requireRole(["OWNER"]);
   const parsed = petSchema.safeParse({
     name: formData.get("name"),
     type: formData.get("type"),
     breed: formData.get("breed") || undefined,
     age: formData.get("age") || undefined,
-    notes: formData.get("notes") || undefined,
+    description: formData.get("description") || undefined,
   });
   if (!parsed.success) return { error: parsed.error.issues[0]?.message };
-  await prisma.pet.create({ data: { ownerId: session.sub, ...parsed.data } });
+  await petRepository.create({ ownerId: session.sub, ...parsed.data });
   revalidatePath("/owner/pets");
   revalidatePath("/owner");
+  return { success: true };
+}
+
+export async function updatePetAction(_prevState: unknown, formData: FormData) {
+  const session = await requireRole(["OWNER"]);
+  const id = String(formData.get("id"));
+  const parsed = petSchema.safeParse({
+    name: formData.get("name"),
+    type: formData.get("type"),
+    breed: formData.get("breed") || undefined,
+    age: formData.get("age") || undefined,
+    description: formData.get("description") || undefined,
+  });
+  if (!parsed.success) return { error: parsed.error.issues[0]?.message };
+  await petRepository.update(id, session.sub, parsed.data);
+  revalidatePath("/owner/pets");
   return { success: true };
 }
 
 export async function deletePetAction(formData: FormData) {
   const session = await requireRole(["OWNER"]);
   const id = String(formData.get("id"));
-  await prisma.pet.deleteMany({ where: { id, ownerId: session.sub } });
+  await petRepository.delete(id, session.sub);
   revalidatePath("/owner/pets");
+  revalidatePath("/owner");
 }
+
+// ─── Jobs ────────────────────────────────────────────────────────────────────
 
 export async function createJobAction(_prevState: unknown, formData: FormData) {
   const session = await requireRole(["OWNER"]);
@@ -71,13 +93,14 @@ export async function selectSitterAction(formData: FormData) {
     where: { id: jobPostId },
     data: { selectedSitterId: sitterId, status: "WAITING" },
   });
-  // Accept selected application only — leave others PENDING until payment confirmed
+  // Accept selected application; leave others PENDING until payment confirmed
   await prisma.jobApplication.updateMany({
     where: { jobPostId, sitterId },
     data: { status: "ACCEPTED" },
   });
   revalidatePath("/owner/jobs");
   revalidatePath("/sitter/jobs");
+  revalidatePath("/sitter/assignments");
 }
 
 export async function confirmPaymentAction(formData: FormData) {
@@ -88,13 +111,14 @@ export async function confirmPaymentAction(formData: FormData) {
   if (!job || job.status !== "WAITING") throw new Error("Job is not awaiting payment.");
 
   await prisma.jobPost.update({ where: { id: jobPostId }, data: { status: "FUNDED" } });
-  // Now safe to reject all other PENDING applications
+  // Reject all remaining PENDING applications now that payment is confirmed
   await prisma.jobApplication.updateMany({
     where: { jobPostId, status: "PENDING" },
     data: { status: "REJECTED" },
   });
   revalidatePath("/owner/jobs");
   revalidatePath("/sitter/jobs");
+  revalidatePath("/sitter/assignments");
 }
 
 export async function cancelJobAction(formData: FormData) {
@@ -114,7 +138,26 @@ export async function cancelJobAction(formData: FormData) {
 export async function confirmCompletionAction(formData: FormData) {
   const session = await requireRole(["OWNER"]);
   const jobPostId = String(formData.get("jobPostId"));
-  await prisma.jobPost.updateMany({ where: { id: jobPostId, ownerId: session.sub }, data: { status: "COMPLETED" } });
+  await prisma.jobPost.updateMany({
+    where: { id: jobPostId, ownerId: session.sub, status: "IN_PROGRESS" },
+    data: { status: "COMPLETED" },
+  });
+  revalidatePath("/owner/jobs");
+  revalidatePath("/sitter/assignments");
+}
+
+export async function rateJobAction(formData: FormData) {
+  const session = await requireRole(["OWNER"]);
+  const jobPostId = String(formData.get("jobPostId"));
+  const rating = Number(formData.get("rating"));
+
+  if (!Number.isInteger(rating) || rating < 1 || rating > 5) throw new Error("Rating must be 1–5.");
+
+  const job = await prisma.jobPost.findFirst({ where: { id: jobPostId, ownerId: session.sub } });
+  if (!job || job.status !== "COMPLETED") throw new Error("Can only rate a completed job.");
+  if (job.rating !== null) throw new Error("Job already rated.");
+
+  await prisma.jobPost.update({ where: { id: jobPostId }, data: { rating } });
   revalidatePath("/owner/jobs");
   revalidatePath("/sitter/assignments");
 }

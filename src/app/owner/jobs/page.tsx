@@ -1,143 +1,156 @@
 import { AppShell } from "@/components/layout/app-shell";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { JobStatusBadge, ApplicationStatusBadge } from "@/components/ui/badge";
+import { StarDisplay } from "@/components/ui/star-rating";
 import { NewJobForm } from "./new-job-form";
+import { SitterProfileModal } from "./sitter-profile-modal";
+import { RateJobForm } from "./rate-job-form";
 import {
   confirmCompletionAction,
   confirmPaymentAction,
   cancelJobAction,
   selectSitterAction,
 } from "@/lib/actions/owner-actions";
+import { jobRepository } from "@/lib/repositories/job-repository";
+import { petRepository } from "@/lib/repositories/pet-repository";
 import { formatDate } from "@/lib/utils";
-import { prisma } from "@/lib/prisma";
 import { requireRole } from "@/lib/session";
-
-const STATUS_BADGE: Record<string, string> = {
-  OPEN:        "bg-emerald-100 text-emerald-800",
-  WAITING:     "bg-yellow-100 text-yellow-800",
-  FUNDED:      "bg-blue-100 text-blue-800",
-  IN_PROGRESS: "bg-indigo-100 text-indigo-800",
-  COMPLETED:   "bg-stone-100 text-stone-700",
-  CANCELLED:   "bg-red-100 text-red-700",
-  REMOVED:     "bg-stone-200 text-stone-500",
-};
 
 export default async function OwnerJobsPage() {
   const session = await requireRole(["OWNER"]);
   const [pets, jobs] = await Promise.all([
-    prisma.pet.findMany({ where: { ownerId: session.sub }, orderBy: { createdAt: "desc" } }),
-    prisma.jobPost.findMany({
-      where: { ownerId: session.sub },
-      include: {
-        pet: true,
-        applications: { include: { sitter: true }, orderBy: { createdAt: "desc" } },
-        workProofs: true,
-      },
-      orderBy: { createdAt: "desc" },
-    }),
+    petRepository.getByOwner(session.sub),
+    jobRepository.getOwnerJobs(session.sub),
   ]);
+
+  // Preload sitter stats for all unique sitters across all jobs
+  const sitterIds = [...new Set(
+    jobs.flatMap((j) => j.applications.map((a) => a.sitter.id))
+  )];
+  const statsMap = new Map(
+    await Promise.all(sitterIds.map(async (id) => [id, await jobRepository.getSitterStats(id)] as const))
+  );
 
   return (
     <AppShell role="OWNER" name={session.name}>
       <h1 className="text-3xl font-bold">Job management</h1>
+
       <Card>
         <h2 className="mb-4 text-lg font-semibold">Post a new job</h2>
         <NewJobForm pets={pets} />
       </Card>
+
       <div className="space-y-4">
+        {jobs.length === 0 && <p className="text-sm text-stone-400">No jobs posted yet.</p>}
         {jobs.map((job) => (
           <Card key={job.id}>
             <div className="flex flex-col gap-4">
+
               {/* Header */}
-              <div>
-                <div className="flex items-center justify-between gap-4">
+              <div className="flex items-start justify-between gap-4">
+                <div>
                   <h3 className="text-lg font-semibold">{job.title}</h3>
-                  <span className={`rounded-full px-3 py-1 text-xs font-semibold ${STATUS_BADGE[job.status] ?? "bg-stone-100"}`}>
-                    {job.status}
-                  </span>
+                  <p className="mt-1 text-sm text-stone-500">
+                    Pet: {job.pet.name} · {formatDate(job.startDate)} → {formatDate(job.endDate)}
+                    {job.location ? ` · ${job.location}` : ""}
+                  </p>
+                  <p className="mt-2 text-sm text-stone-600">{job.description}</p>
+                  <p className="mt-1 text-sm font-medium">฿{job.paymentAmount.toLocaleString()}</p>
                 </div>
-                <p className="mt-1 text-sm text-stone-500">
-                  Pet: {job.pet.name} · {formatDate(job.startDate)} → {formatDate(job.endDate)}
-                </p>
-                <p className="mt-3 text-sm text-stone-600">{job.description}</p>
+                <div className="flex flex-col items-end gap-2 shrink-0">
+                  <JobStatusBadge status={job.status} />
+                  {job.rating !== null && <StarDisplay rating={job.rating} />}
+                </div>
               </div>
 
               {/* Job-level actions */}
-              <div className="flex flex-wrap gap-2">
-                {/* Confirm Payment — only when WAITING */}
+              <div className="flex flex-wrap items-center gap-2">
                 {job.status === "WAITING" && (
                   <form action={confirmPaymentAction}>
                     <input suppressHydrationWarning type="hidden" name="jobPostId" value={job.id} />
-                    <Button type="submit" className="bg-blue-700 hover:bg-blue-600">
-                      Confirm payment
-                    </Button>
+                    <Button type="submit" className="bg-blue-700 hover:bg-blue-600">Confirm payment</Button>
                   </form>
                 )}
-
-                {/* Cancel — only when OPEN */}
                 {job.status === "OPEN" && (
                   <form action={cancelJobAction}>
                     <input suppressHydrationWarning type="hidden" name="jobPostId" value={job.id} />
-                    <Button type="submit" className="bg-red-700 hover:bg-red-600">
-                      Cancel job
-                    </Button>
+                    <Button type="submit" className="bg-red-700 hover:bg-red-600">Cancel job</Button>
                   </form>
                 )}
-
-                {/* No-refund notice when past OPEN */}
                 {(job.status === "WAITING" || job.status === "FUNDED" || job.status === "IN_PROGRESS") && (
-                  <p className="self-center text-xs text-stone-400">No refunds after payment has been initiated.</p>
+                  <p className="text-xs text-stone-400">No refunds after payment has been initiated.</p>
                 )}
               </div>
 
               <div className="grid gap-4 md:grid-cols-2">
                 {/* Applicants */}
                 <div>
-                  <h4 className="mb-2 font-medium">Applicants</h4>
+                  <h4 className="mb-2 font-medium">Applicants ({job.applications.length})</h4>
                   <div className="space-y-3">
-                    {job.applications.length === 0 ? (
-                      <p className="text-sm text-stone-500">No applications yet.</p>
-                    ) : null}
-                    {job.applications.map((application) => (
-                      <div key={application.id} className="rounded-xl border border-stone-200 p-3 text-sm">
-                        <p className="font-medium">{application.sitter.name}</p>
-                        <p className="text-stone-500">{application.message || "No message"}</p>
-                        <p className="mt-1 text-xs text-stone-400">Status: {application.status}</p>
-                        {job.status === "OPEN" && (
-                          <form action={selectSitterAction} className="mt-2">
-                            <input suppressHydrationWarning type="hidden" name="jobPostId" value={job.id} />
-                            <input suppressHydrationWarning type="hidden" name="sitterId" value={application.sitter.id} />
-                            <Button type="submit">Accept sitter</Button>
-                          </form>
-                        )}
-                      </div>
-                    ))}
+                    {job.applications.length === 0 && (
+                      <p className="text-sm text-stone-400">No applications yet.</p>
+                    )}
+                    {job.applications.map((application) => {
+                      const stats = statsMap.get(application.sitter.id);
+                      return (
+                        <div key={application.id} className="rounded-xl border border-stone-200 p-3 text-sm">
+                          <div className="flex items-center justify-between gap-2">
+                            <p className="font-medium">{application.sitter.name}</p>
+                            <div className="flex items-center gap-2">
+                              <ApplicationStatusBadge status={application.status} />
+                              <SitterProfileModal
+                                sitterName={application.sitter.name}
+                                profile={application.sitter.sitterProfile ?? null}
+                                avgRating={stats?.avgRating ?? null}
+                                completedJobs={stats?.completedJobs ?? 0}
+                              />
+                            </div>
+                          </div>
+                          <p className="mt-1 text-stone-500">{application.message || "No message"}</p>
+                          {job.status === "OPEN" && application.status === "PENDING" && (
+                            <form action={selectSitterAction} className="mt-2">
+                              <input suppressHydrationWarning type="hidden" name="jobPostId" value={job.id} />
+                              <input suppressHydrationWarning type="hidden" name="sitterId" value={application.sitter.id} />
+                              <Button type="submit" className="text-xs px-3 py-1.5">Accept sitter</Button>
+                            </form>
+                          )}
+                        </div>
+                      );
+                    })}
                   </div>
                 </div>
 
-                {/* Work proofs */}
+                {/* Work proofs + completion */}
                 <div>
                   <h4 className="mb-2 font-medium">Work proofs</h4>
                   <div className="space-y-3">
-                    {job.workProofs.length === 0 ? (
-                      <p className="text-sm text-stone-500">No proof submitted yet.</p>
-                    ) : null}
+                    {job.workProofs.length === 0 && (
+                      <p className="text-sm text-stone-400">No proof submitted yet.</p>
+                    )}
                     {job.workProofs.map((proof) => (
                       <div key={proof.id} className="rounded-xl border border-stone-200 p-3 text-sm">
-                        <p>{proof.proofText || "No text provided"}</p>
-                        {proof.imageUrl ? (
-                          <a href={proof.imageUrl} className="mt-2 block text-stone-900 underline">
-                            Open evidence link
+                        <p className="text-stone-700">{proof.proofText || "No description"}</p>
+                        {proof.imageUrl && (
+                          <a href={proof.imageUrl} target="_blank" rel="noopener noreferrer" className="mt-2 block text-stone-900 underline">
+                            Open evidence
                           </a>
-                        ) : null}
+                        )}
+                        <p className="mt-1 text-xs text-stone-400">Submitted {formatDate(proof.submittedAt)}</p>
                       </div>
                     ))}
-                    {job.workProofs.length > 0 && job.status !== "COMPLETED" ? (
+                    {job.workProofs.length > 0 && job.status === "IN_PROGRESS" && (
                       <form action={confirmCompletionAction}>
                         <input suppressHydrationWarning type="hidden" name="jobPostId" value={job.id} />
                         <Button type="submit">Confirm completion</Button>
                       </form>
-                    ) : null}
+                    )}
+                    {job.status === "COMPLETED" && job.rating === null && (
+                      <RateJobForm jobPostId={job.id} />
+                    )}
+                    {job.status === "COMPLETED" && job.rating !== null && (
+                      <p className="text-sm text-stone-500">You rated this job <StarDisplay rating={job.rating} /></p>
+                    )}
                   </div>
                 </div>
               </div>

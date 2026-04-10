@@ -19,6 +19,7 @@ const navByRole: Record<Role, Array<{ href: string; label: string }>> = {
     { href: "/admin", label: "Overview" },
     { href: "/admin/verifications", label: "Verifications" },
     { href: "/admin/jobs", label: "Moderation" },
+    { href: "/admin/sitters", label: "Sitters" },
   ],
 };
 
