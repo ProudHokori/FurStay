@@ -2,7 +2,8 @@
   "permissions": {
     "allow": [
       "Bash(npx prisma:*)",
-      "Bash(python3 -c \"import json,sys; data=json.load\\(sys.stdin\\); print\\(data[0]['text']\\)\")"
+      "Bash(python3 -c \"import json,sys; data=json.load\\(sys.stdin\\); print\\(data[0]['text']\\)\")",
+      "Bash(npx vitest:*)"
     ]
   }
 }
