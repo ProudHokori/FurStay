@@ -7,10 +7,11 @@ import { petSchema } from "@/lib/validations/pet";
 import { jobSchema } from "@/lib/validations/job";
 import { petRepository } from "@/lib/repositories/pet-repository";
 import { prisma } from "@/lib/prisma";
+import { selectSitter, confirmPayment, cancelJob, confirmCompletion, rateJob } from "@/lib/services/job-service";
 
-// ─── Pets ────────────────────────────────────────────────────────────────────
+// ── Pets ──────────────────────────────────────────────────────────────────────
 
-export async function createPetAction(_prevState: unknown, formData: FormData) {
+export async function createPetAction(_prev: unknown, formData: FormData) {
   const session = await requireRole(["OWNER"]);
   const parsed = petSchema.safeParse({
     name: formData.get("name"),
@@ -26,7 +27,7 @@ export async function createPetAction(_prevState: unknown, formData: FormData) {
   return { success: true };
 }
 
-export async function updatePetAction(_prevState: unknown, formData: FormData) {
+export async function updatePetAction(_prev: unknown, formData: FormData) {
   const session = await requireRole(["OWNER"]);
   const id = String(formData.get("id"));
   const parsed = petSchema.safeParse({
@@ -44,15 +45,14 @@ export async function updatePetAction(_prevState: unknown, formData: FormData) {
 
 export async function deletePetAction(formData: FormData) {
   const session = await requireRole(["OWNER"]);
-  const id = String(formData.get("id"));
-  await petRepository.delete(id, session.sub);
+  await petRepository.delete(String(formData.get("id")), session.sub);
   revalidatePath("/owner/pets");
   revalidatePath("/owner");
 }
 
-// ─── Jobs ────────────────────────────────────────────────────────────────────
+// ── Jobs ──────────────────────────────────────────────────────────────────────
 
-export async function createJobAction(_prevState: unknown, formData: FormData) {
+export async function createJobAction(_prev: unknown, formData: FormData) {
   const session = await requireRole(["OWNER"]);
   const parsed = jobSchema.safeParse({
     petId: formData.get("petId"),
@@ -83,21 +83,7 @@ export async function createJobAction(_prevState: unknown, formData: FormData) {
 
 export async function selectSitterAction(formData: FormData) {
   const session = await requireRole(["OWNER"]);
-  const jobPostId = String(formData.get("jobPostId"));
-  const sitterId = String(formData.get("sitterId"));
-
-  const job = await prisma.jobPost.findFirst({ where: { id: jobPostId, ownerId: session.sub } });
-  if (!job || job.status !== "OPEN") throw new Error("Job is no longer open.");
-
-  await prisma.jobPost.update({
-    where: { id: jobPostId },
-    data: { selectedSitterId: sitterId, status: "WAITING" },
-  });
-  // Accept selected application; leave others PENDING until payment confirmed
-  await prisma.jobApplication.updateMany({
-    where: { jobPostId, sitterId },
-    data: { status: "ACCEPTED" },
-  });
+  await selectSitter(session.sub, String(formData.get("jobPostId")), String(formData.get("sitterId")));
   revalidatePath("/owner/jobs");
   revalidatePath("/sitter/jobs");
   revalidatePath("/sitter/assignments");
@@ -105,17 +91,7 @@ export async function selectSitterAction(formData: FormData) {
 
 export async function confirmPaymentAction(formData: FormData) {
   const session = await requireRole(["OWNER"]);
-  const jobPostId = String(formData.get("jobPostId"));
-
-  const job = await prisma.jobPost.findFirst({ where: { id: jobPostId, ownerId: session.sub } });
-  if (!job || job.status !== "WAITING") throw new Error("Job is not awaiting payment.");
-
-  await prisma.jobPost.update({ where: { id: jobPostId }, data: { status: "FUNDED" } });
-  // Reject all remaining PENDING applications now that payment is confirmed
-  await prisma.jobApplication.updateMany({
-    where: { jobPostId, status: "PENDING" },
-    data: { status: "REJECTED" },
-  });
+  await confirmPayment(session.sub, String(formData.get("jobPostId")));
   revalidatePath("/owner/jobs");
   revalidatePath("/sitter/jobs");
   revalidatePath("/sitter/assignments");
@@ -123,41 +99,21 @@ export async function confirmPaymentAction(formData: FormData) {
 
 export async function cancelJobAction(formData: FormData) {
   const session = await requireRole(["OWNER"]);
-  const jobPostId = String(formData.get("jobPostId"));
-
-  const job = await prisma.jobPost.findFirst({ where: { id: jobPostId, ownerId: session.sub } });
-  if (!job) throw new Error("Job not found.");
-  if (job.status !== "OPEN") throw new Error("No refunds after payment has been initiated.");
-
-  await prisma.jobPost.update({ where: { id: jobPostId }, data: { status: "CANCELLED" } });
-  await prisma.jobApplication.updateMany({ where: { jobPostId }, data: { status: "REJECTED" } });
+  await cancelJob(session.sub, String(formData.get("jobPostId")));
   revalidatePath("/owner/jobs");
   revalidatePath("/sitter/jobs");
 }
 
 export async function confirmCompletionAction(formData: FormData) {
   const session = await requireRole(["OWNER"]);
-  const jobPostId = String(formData.get("jobPostId"));
-  await prisma.jobPost.updateMany({
-    where: { id: jobPostId, ownerId: session.sub, status: "IN_PROGRESS" },
-    data: { status: "COMPLETED" },
-  });
+  await confirmCompletion(session.sub, String(formData.get("jobPostId")));
   revalidatePath("/owner/jobs");
   revalidatePath("/sitter/assignments");
 }
 
 export async function rateJobAction(formData: FormData) {
   const session = await requireRole(["OWNER"]);
-  const jobPostId = String(formData.get("jobPostId"));
-  const rating = Number(formData.get("rating"));
-
-  if (!Number.isInteger(rating) || rating < 1 || rating > 5) throw new Error("Rating must be 1–5.");
-
-  const job = await prisma.jobPost.findFirst({ where: { id: jobPostId, ownerId: session.sub } });
-  if (!job || job.status !== "COMPLETED") throw new Error("Can only rate a completed job.");
-  if (job.rating !== null) throw new Error("Job already rated.");
-
-  await prisma.jobPost.update({ where: { id: jobPostId }, data: { rating } });
+  await rateJob(session.sub, String(formData.get("jobPostId")), Number(formData.get("rating")));
   revalidatePath("/owner/jobs");
   revalidatePath("/sitter/assignments");
 }

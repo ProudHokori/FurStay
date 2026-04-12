@@ -204,6 +204,7 @@ svg {
 
   .btn-primary:hover {
     background-color: var(--primary-hover);
+    scale: 1.05;
   }
 
   .btn-primary:active {
@@ -216,9 +217,7 @@ svg {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    border-radius: 9999px;
-    border: 1px solid var(--border);
-    background-color: var(--surface);
+    background-color: var(--surface-3);
     background-image: none;
     color: var(--fur-dark) !important;
     box-shadow: var(--shadow-sm);
@@ -232,7 +231,7 @@ svg {
 
   .btn-secondary:hover {
     background-color: var(--secondary-hover);
-    border-color: var(--border-strong);
+    scale: 1.05;
   }
 
   .btn-secondary:active {

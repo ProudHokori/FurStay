@@ -63,7 +63,7 @@ export default async function HomePage() {
           <nav className="flex items-center gap-3 sm:gap-4">
             <Link
               href="/login"
-              className="rounded-full px-4 py-2 text-sm font-semibold bg-[var(--surface-3)] text-[var(--fur-dark)] transition hover:bg-[var(--surface-2)] sm:px-5 sm:text-base"
+              className="btn-secondary rounded-full px-4 py-2 text-sm font-semibold text-[var(--fur-dark)] transition sm:px-5 sm:text-base"
             >
               Login
             </Link>
@@ -115,16 +115,16 @@ export default async function HomePage() {
             <div className="mt-8 flex flex-col items-center gap-4 sm:flex-row lg:items-start">
               <Link
                 href="/login"
-                className="btn-primary min-w-[220px] rounded-full px-8 py-4 text-base font-bold shadow-[var(--shadow-sm)] transition hover:-translate-y-[1px]"
+                className="btn-secondary min-w-[220px] rounded-full px-8 py-4 text-base font-bold shadow-[var(--shadow-sm)] transition hover:-translate-y-[1px]"
               >
                 Login
               </Link>
 
               <Link
                 href="/register"
-                className="btn-secondary min-w-[220px] rounded-full px-8 py-4 text-base font-bold shadow-[var(--shadow-sm)] transition hover:-translate-y-[1px]"
+                className="btn-primary min-w-[220px] rounded-full px-8 py-4 text-base font-bold shadow-[var(--shadow-sm)] transition hover:-translate-y-[1px]"
               >
-                Join Our Family
+                Join Us!
               </Link>
             </div>
 
