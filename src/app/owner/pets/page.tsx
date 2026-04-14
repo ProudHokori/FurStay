@@ -1,4 +1,5 @@
 import { AppShell } from "@/components/layout/app-shell";
+import { PageHeader } from "@/components/ui/page-header";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -18,7 +19,10 @@ export default async function OwnerPetsPage() {
   const pets = await petRepository.getByOwner(session.sub);
   return (
     <AppShell role="OWNER" name={session.name}>
-      <h1 className="text-3xl font-bold">Pet profiles</h1>
+      <PageHeader
+        title="Pet profiles"
+        description="Add and manage your pets. Their profiles will be shown to sitters when you post a job."
+      />
       <Card>
         <h2 className="mb-4 text-lg font-semibold">Add a pet</h2>
         <form action={addPetAction} className="grid gap-3 md:grid-cols-2">

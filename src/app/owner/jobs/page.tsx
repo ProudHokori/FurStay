@@ -16,6 +16,7 @@ import { jobRepository } from "@/lib/repositories/job-repository";
 import { petRepository } from "@/lib/repositories/pet-repository";
 import { formatDate } from "@/lib/utils";
 import { requireRole } from "@/lib/session";
+import { PageHeader } from "@/components/ui/page-header";
 
 export default async function OwnerJobsPage() {
   const session = await requireRole(["OWNER"]);
@@ -34,7 +35,10 @@ export default async function OwnerJobsPage() {
 
   return (
     <AppShell role="OWNER" name={session.name}>
-      <h1 className="text-3xl font-bold">Job management</h1>
+      <PageHeader
+        title="Job management"
+        description="Post new jobs and manage applications from sitters."
+      />
 
       <Card>
         <h2 className="mb-4 text-lg font-semibold">Post a new job</h2>
@@ -69,17 +73,17 @@ export default async function OwnerJobsPage() {
                 {job.status === "WAITING" && (
                   <form action={confirmPaymentAction}>
                     <input suppressHydrationWarning type="hidden" name="jobPostId" value={job.id} />
-                    <Button type="submit" className="bg-blue-700 hover:bg-blue-600">Confirm payment</Button>
+                    <Button type="submit" style={{ backgroundColor: "var(--info)" }}>Confirm payment</Button>
                   </form>
                 )}
                 {job.status === "OPEN" && (
                   <form action={cancelJobAction}>
                     <input suppressHydrationWarning type="hidden" name="jobPostId" value={job.id} />
-                    <Button type="submit" className="bg-red-700 hover:bg-red-600">Cancel job</Button>
+                    <Button type="submit" style={{ backgroundColor: "var(--danger)" }}>Cancel job</Button>
                   </form>
                 )}
                 {(job.status === "WAITING" || job.status === "FUNDED" || job.status === "IN_PROGRESS") && (
-                  <p className="text-xs text-stone-400">No refunds after payment has been initiated.</p>
+                  <p className="text-xs" style={{ color: "var(--muted-foreground)" }}>No refunds after payment has been initiated.</p>
                 )}
               </div>
 

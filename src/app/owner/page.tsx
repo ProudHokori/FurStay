@@ -1,5 +1,6 @@
 import { AppShell } from "@/components/layout/app-shell";
 import { Card } from "@/components/ui/card";
+import { PageHeader } from "@/components/ui/page-header";
 import { petRepository } from "@/lib/repositories/pet-repository";
 import { jobRepository } from "@/lib/repositories/job-repository";
 import { requireRole } from "@/lib/session";
@@ -12,7 +13,10 @@ export default async function OwnerDashboardPage() {
   ]);
   return (
     <AppShell role="OWNER" name={session.name}>
-      <h1 className="text-3xl font-bold">Owner dashboard</h1>
+      <PageHeader
+        title="Owner dashboard"
+        description="Manage your pets and track the jobs you've posted."
+      />
       <div className="grid gap-4 md:grid-cols-3">
         <Card><p className="text-sm text-stone-500">Pets</p><p className="mt-2 text-3xl font-semibold">{pets.length}</p></Card>
         <Card><p className="text-sm text-stone-500">Jobs posted</p><p className="mt-2 text-3xl font-semibold">{jobs.length}</p></Card>

@@ -15,17 +15,32 @@ export function NewJobForm({ pets }: { pets: Pet[] }) {
   return (
     <form action={action} className="grid gap-3 md:grid-cols-2">
       {state?.error && (
-        <p className="md:col-span-2 rounded-lg bg-red-50 border border-red-200 px-3 py-2 text-sm text-red-700">
+        <div
+          className="md:col-span-2 rounded-[var(--radius-sm)] border px-3 py-2 text-sm"
+          style={{
+            borderColor: "color-mix(in srgb, var(--danger) 40%, transparent)",
+            backgroundColor: "color-mix(in srgb, var(--danger) 10%, var(--surface-2))",
+            color: "color-mix(in srgb, var(--danger) 65%, #000)",
+          }}
+        >
           {state.error}
-        </p>
+        </div>
       )}
       <Select name="petId" required defaultValue="">
         <option value="" disabled>Select a pet</option>
-        {pets.map((pet) => <option key={pet.id} value={pet.id}>{pet.name}</option>)}
+        {pets.map((pet) => (
+          <option key={pet.id} value={pet.id}>
+            {pet.name}
+          </option>
+        ))}
       </Select>
       <Input name="title" placeholder="Job title" required />
       <div className="md:col-span-2">
-        <Textarea name="description" placeholder="Describe the work, schedule, feeding, walking, medication, etc." required />
+        <Textarea
+          name="description"
+          placeholder="Describe the work, schedule, feeding, walking, medication, etc."
+          required
+        />
       </div>
       <Input name="location" placeholder="Location" />
       <Input name="paymentAmount" type="number" min="1" step="any" placeholder="Payment amount" required />
