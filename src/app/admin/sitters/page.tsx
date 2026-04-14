@@ -1,6 +1,7 @@
 import { AppShell } from "@/components/layout/app-shell";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { PageHeader } from "@/components/ui/page-header";
 import { VerificationStatusBadge } from "@/components/ui/badge";
 import { banSitterAction, unbanSitterAction } from "@/lib/actions/admin-actions";
 import { adminRepository } from "@/lib/repositories/admin-repository";
@@ -11,7 +12,10 @@ export default async function AdminSittersPage() {
   const sitters = await adminRepository.getAllSitters();
   return (
     <AppShell role="ADMIN" name={session.name}>
-      <h1 className="text-3xl font-bold">Sitter management</h1>
+      <PageHeader
+        title="Sitter management"
+        description="View all registered sitters. Ban or unban accounts that violate platform policies."
+      />
       <div className="space-y-4">
         {sitters.length === 0 && (
           <Card><p className="text-sm text-stone-500">No sitters registered yet.</p></Card>
@@ -43,12 +47,12 @@ export default async function AdminSittersPage() {
                 {sitter.sitterProfile?.isBanned ? (
                   <form action={unbanSitterAction}>
                     <input suppressHydrationWarning type="hidden" name="userId" value={sitter.id} />
-                    <Button type="submit" className="bg-stone-600 hover:bg-stone-500">Unban</Button>
+                    <Button type="submit" style={{ backgroundColor: "var(--fur-brown)" }}>Unban</Button>
                   </form>
                 ) : (
                   <form action={banSitterAction}>
                     <input suppressHydrationWarning type="hidden" name="userId" value={sitter.id} />
-                    <Button type="submit" className="bg-red-700 hover:bg-red-600">Ban</Button>
+                    <Button type="submit" style={{ backgroundColor: "var(--danger)" }}>Ban</Button>
                   </form>
                 )}
               </div>

@@ -1,6 +1,7 @@
 import { AppShell } from "@/components/layout/app-shell";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { PageHeader } from "@/components/ui/page-header";
 import { JobStatusBadge } from "@/components/ui/badge";
 import { removeJobAction, adminCancelJobAction } from "@/lib/actions/admin-actions";
 import { adminRepository } from "@/lib/repositories/admin-repository";
@@ -12,7 +13,10 @@ export default async function AdminJobsPage() {
   const jobs = await adminRepository.getModerationJobs();
   return (
     <AppShell role="ADMIN" name={session.name}>
-      <h1 className="text-3xl font-bold">Job moderation</h1>
+      <PageHeader
+        title="Job moderation"
+        description="Review all active job listings. Cancel or remove posts that violate platform rules."
+      />
       <div className="space-y-4">
         {jobs.map((job) => (
           <Card key={job.id}>
@@ -31,13 +35,13 @@ export default async function AdminJobsPage() {
                 {job.status !== "CANCELLED" && job.status !== "REMOVED" && (
                   <form action={adminCancelJobAction}>
                     <input suppressHydrationWarning type="hidden" name="jobPostId" value={job.id} />
-                    <Button type="submit" className="bg-amber-600 hover:bg-amber-500">Cancel</Button>
+                    <Button type="submit" style={{ backgroundColor: "var(--fur-clay)" }}>Cancel</Button>
                   </form>
                 )}
                 {job.status !== "REMOVED" && (
                   <form action={removeJobAction}>
                     <input suppressHydrationWarning type="hidden" name="jobPostId" value={job.id} />
-                    <Button type="submit" className="bg-red-700 hover:bg-red-600">Remove</Button>
+                    <Button type="submit" style={{ backgroundColor: "var(--danger)" }}>Remove</Button>
                   </form>
                 )}
               </div>

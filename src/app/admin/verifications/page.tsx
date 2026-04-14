@@ -1,6 +1,7 @@
 import { AppShell } from "@/components/layout/app-shell";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { PageHeader } from "@/components/ui/page-header";
 import { reviewVerificationAction } from "@/lib/actions/admin-actions";
 import { adminRepository } from "@/lib/repositories/admin-repository";
 import { requireRole } from "@/lib/session";
@@ -10,7 +11,10 @@ export default async function AdminVerificationsPage() {
   const requests = await adminRepository.getPendingVerifications();
   return (
     <AppShell role="ADMIN" name={session.name}>
-      <h1 className="text-3xl font-bold">Verification review</h1>
+      <PageHeader
+        title="Verification review"
+        description="Review sitter verification requests and approve or reject their profiles."
+      />
       {requests.length === 0 && (
         <Card><p className="text-sm text-stone-500">No pending verification requests.</p></Card>
       )}
@@ -38,7 +42,7 @@ export default async function AdminVerificationsPage() {
                 <form action={reviewVerificationAction}>
                   <input suppressHydrationWarning type="hidden" name="requestId" value={request.id} />
                   <input suppressHydrationWarning type="hidden" name="decision" value="REJECT" />
-                  <Button type="submit" className="bg-red-700 hover:bg-red-600">Reject</Button>
+                  <Button type="submit" style={{ backgroundColor: "var(--danger)" }}>Reject</Button>
                 </form>
               </div>
             </div>
