@@ -4,6 +4,7 @@ import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { VerificationStatusBadge } from "@/components/ui/badge";
+import { PageHeader } from "@/components/ui/page-header";
 import { saveSitterProfileAction, submitVerificationAction } from "@/lib/actions/sitter-actions";
 import { sitterRepository } from "@/lib/repositories/sitter-repository";
 import { prisma } from "@/lib/prisma";
@@ -31,7 +32,10 @@ export default async function SitterProfilePage() {
 
   return (
     <AppShell role="SITTER" name={session.name}>
-      <h1 className="text-3xl font-bold">My profile</h1>
+      <PageHeader
+        title="My profile"
+        description="Keep your profile up to date so owners know who they're trusting with their pets."
+      />
 
       {/* Profile details */}
       <Card>

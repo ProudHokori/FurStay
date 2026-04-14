@@ -1,4 +1,5 @@
 import { AppShell } from "@/components/layout/app-shell";
+import { PageHeader } from "@/components/ui/page-header";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
@@ -29,7 +30,10 @@ export default async function SitterJobsPage() {
 
   return (
     <AppShell role="SITTER" name={session.name}>
-      <h1 className="text-3xl font-bold">Job board</h1>
+      <PageHeader
+        title="Job board"
+        description="Browse open jobs posted by pet owners. You must be verified to apply."
+      />
       <VerificationBanner verificationStatus={profile?.verificationStatus ?? null} />
       <div className="space-y-4">
         {jobs.length === 0 && (

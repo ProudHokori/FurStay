@@ -1,4 +1,5 @@
 import { AppShell } from "@/components/layout/app-shell";
+import { PageHeader } from "@/components/ui/page-header";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -22,7 +23,10 @@ export default async function SitterAssignmentsPage() {
 
   return (
     <AppShell role="SITTER" name={session.name}>
-      <h1 className="text-3xl font-bold">Assignments</h1>
+      <PageHeader
+        title="Assignments"
+        description="Track your active jobs and submit proof of work when you're done."
+      />
 
       {/* Active count summary */}
       <div className="flex gap-4 text-sm text-stone-500">

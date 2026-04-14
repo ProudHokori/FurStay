@@ -1,4 +1,5 @@
 import { AppShell } from "@/components/layout/app-shell";
+import { PageHeader } from "@/components/ui/page-header";
 import { Card } from "@/components/ui/card";
 import { VerificationBanner } from "@/components/sitter/verification-banner";
 import { sitterRepository } from "@/lib/repositories/sitter-repository";
@@ -22,7 +23,10 @@ export default async function SitterDashboardPage() {
 
   return (
     <AppShell role="SITTER" name={session.name}>
-      <h1 className="text-3xl font-bold">Overview</h1>
+      <PageHeader
+        title="Overview"
+        description="Your dashboard — a quick look at your verification status, applications, and earnings."
+      />
       <VerificationBanner verificationStatus={profile?.verificationStatus ?? null} />
       <div className="grid gap-4 md:grid-cols-4">
         <Card>
