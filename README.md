@@ -13,7 +13,7 @@ FurStay is a web application that connects **pet owners** who need someone to lo
 5. [Installation & Setup](#5-installation--setup)
 6. [How to Run the System](#6-how-to-run-the-system)
 7. [Screenshots](#7-screenshots)
-8. [Presentation Q&A](#8-presentation-qa)
+
 
 ---
 
