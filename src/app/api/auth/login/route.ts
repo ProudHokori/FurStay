@@ -5,6 +5,6 @@ import { homeForRole } from "@/lib/route-helpers";
 export async function POST(request: Request) {
   const formData = await request.formData();
   const result = await loginUser(formData);
-  if (result.error) return NextResponse.json(result, { status: 400 });
+  if (result.error || !result.role) return NextResponse.json(result, { status: 400 });
   return NextResponse.json({ redirectTo: homeForRole(result.role) });
 }
