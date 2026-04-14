@@ -1,25 +1,57 @@
+import type { CSSProperties } from "react";
 import { cn } from "@/lib/utils";
 
 type Variant = "default" | "green" | "yellow" | "blue" | "indigo" | "red" | "stone" | "amber";
 
-const variantStyles: Record<Variant, string> = {
-  default: "bg-stone-100 text-stone-700",
-  green:   "bg-emerald-100 text-emerald-800",
-  yellow:  "bg-yellow-100 text-yellow-800",
-  blue:    "bg-blue-100 text-blue-800",
-  indigo:  "bg-indigo-100 text-indigo-800",
-  red:     "bg-red-100 text-red-700",
-  stone:   "bg-stone-200 text-stone-500",
-  amber:   "bg-amber-100 text-amber-800",
+const variantStyles: Record<Variant, CSSProperties> = {
+  default: {
+    backgroundColor: "var(--muted)",
+    color: "var(--muted-foreground)",
+  },
+  green: {
+    backgroundColor: "color-mix(in srgb, var(--success) 22%, var(--surface-2))",
+    color: "color-mix(in srgb, var(--success) 55%, #000)",
+  },
+  yellow: {
+    backgroundColor: "color-mix(in srgb, var(--warning) 30%, var(--surface-2))",
+    color: "color-mix(in srgb, var(--warning) 35%, #000)",
+  },
+  blue: {
+    backgroundColor: "color-mix(in srgb, var(--info) 18%, var(--surface-2))",
+    color: "var(--info)",
+  },
+  indigo: {
+    backgroundColor: "color-mix(in srgb, var(--info) 18%, var(--surface-2))",
+    color: "var(--info)",
+  },
+  red: {
+    backgroundColor: "color-mix(in srgb, var(--danger) 22%, var(--surface-2))",
+    color: "color-mix(in srgb, var(--danger) 65%, #000)",
+  },
+  stone: {
+    backgroundColor: "var(--muted)",
+    color: "var(--muted-foreground)",
+  },
+  amber: {
+    backgroundColor: "color-mix(in srgb, var(--fur-beige) 55%, var(--surface-2))",
+    color: "var(--fur-brown)",
+  },
 };
 
-export function Badge({ children, variant = "default", className }: {
+export function Badge({
+  children,
+  variant = "default",
+  className,
+}: {
   children: React.ReactNode;
   variant?: Variant;
   className?: string;
 }) {
   return (
-    <span className={cn("inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold", variantStyles[variant], className)}>
+    <span
+      className={cn("inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold", className)}
+      style={variantStyles[variant]}
+    >
       {children}
     </span>
   );
