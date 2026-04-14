@@ -47,7 +47,7 @@ FurStay uses a **Layered Architecture** with four explicit layers:
 ```
 ┌─────────────────────────────────────────────────┐
 │  Presentation Layer                             │
-│  Next.js App Router pages & React components   │
+│  Next.js App Router pages & React components    │
 ├─────────────────────────────────────────────────┤
 │  Action Layer  (Next.js Server Actions)         │
 │  FormData parsing · session auth · revalidation │
@@ -164,7 +164,9 @@ tests/
 ### Clone the repository
 
 ```bash
-git clone <your-repo-url>
+git clone https://github.com/ProudHokori/FurStay.git
+```
+```bash
 cd furstay
 ```
 

@@ -7,7 +7,12 @@
       "Bash(wc -l src/lib/actions/*.ts)",
       "Bash(wc -l src/lib/services/*.ts)",
       "Bash(python3 -c \"import json,sys; d=json.load\\(sys.stdin\\); print\\(json.dumps\\(d.get\\('prisma',{}\\), indent=2\\)\\)\")",
-      "Bash(node -e \"const p=require\\('./package.json'\\); console.log\\(JSON.stringify\\(p.prisma||{}\\)\\)\")"
+      "Bash(node -e \"const p=require\\('./package.json'\\); console.log\\(JSON.stringify\\(p.prisma||{}\\)\\)\")",
+      "Bash(pandoc --version)",
+      "Bash(where pandoc:*)",
+      "Bash(npm install:*)",
+      "Bash(npx tsc:*)",
+      "Bash(npx next:*)"
     ]
   }
 }
