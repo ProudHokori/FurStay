@@ -260,18 +260,42 @@ npm test
 
 ## 7. Screenshots
 
-> *(Add screenshots here before submission)*
+### Landing & Authentication
 
-| Screen | Description |
-|---|---|
-| `/owner/pets` | Pet profile management |
-| `/owner/jobs` | Job posting and sitter selection |
-| `/sitter/jobs` | Job board with pet profiles |
-| `/sitter/assignments` | Active assignments with location revealed |
-| `/sitter/profile` | Verification submission |
-| `/admin/verifications` | Verification review queue |
-| `/admin/jobs` | Job moderation |
-| `/admin/sitters` | Sitter management and ban control |
+![Landing and login pages](public/landing-pages.png)
+
+> Home page and login / register forms.
+
+---
+
+### Pet Owner Pages
+
+![Owner pages](public/owner-pages.png)
+
+> Pet profile management (`/owner/pets`) and job lifecycle — posting, sitter selection, payment confirmation, and rating (`/owner/jobs`).
+
+---
+
+### Sitter Pages
+
+![Sitter pages](public/sitter-pages.png)
+
+> Job board with pet profiles (`/sitter/jobs`), active assignments with revealed location (`/sitter/assignments`), and profile / verification submission (`/sitter/profile`).
+
+---
+
+### Admin Pages
+
+![Admin pages](public/admin-pages.png)
+
+> Verification review queue (`/admin/verifications`), job moderation (`/admin/jobs`), sitter management and ban controls (`/admin/sitters`), and dashboard stats (`/admin`).
+
+
+### Live Demo
+
+**[Try FurStay here](https://spoilage-consensus-rust.ngrok-free.dev/)**
+
+> **Note:** This demo runs on a shared database via ngrok tunnel — no local setup required. The link is only available while the host machine is running, so it may be offline outside of the demo/presentation period.
 
 ---
 
