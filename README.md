@@ -44,23 +44,7 @@ FurStay solves this by providing:
 
 FurStay uses a **Layered Architecture** with four explicit layers:
 
-```
-┌─────────────────────────────────────────────────┐
-│  Presentation Layer                             │
-│  Next.js App Router pages & React components    │
-├─────────────────────────────────────────────────┤
-│  Action Layer  (Next.js Server Actions)         │
-│  FormData parsing · session auth · revalidation │
-├─────────────────────────────────────────────────┤
-│  Service Layer  (Business Logic)                │
-│  job-service · sitter-service ·                 │
-│  verification-service · auth-service            │
-├─────────────────────────────────────────────────┤
-│  Data Access Layer                              │
-│  Repositories (read queries) · Prisma (writes)  │
-│  PostgreSQL database                            │
-└─────────────────────────────────────────────────┘
-```
+![architecture diagram](public/furstay-architecture-diagram.png)
 
 Each layer depends only on the layer directly below it — the UI never touches Prisma directly, and business rules never touch FormData or HTTP cookies.
 
@@ -79,7 +63,7 @@ src/
 ├── lib/
 │   ├── actions/            # Server Actions (thin FormData wrappers)
 │   ├── services/           # Business logic & domain rules
-│   ├── repositories/       # Read queries (Prisma)
+│   ├── repositories/       # Data access abstraction (CRUD)
 │   ├── validations/        # Zod schemas
 │   ├── session.ts          # JWT auth helpers
 │   └── prisma.ts           # Prisma client singleton
@@ -135,6 +119,8 @@ tests/
 ---
 
 ## 4. Technology Stack
+
+![tech stack diagram](public/furstay-techstack-diagram.png)
 
 | Layer | Technology |
 |---|---|
@@ -236,7 +222,7 @@ npm run prisma:seed
 npm run dev
 ```
 
-App will be available at http://localhost:3000
+App will be available at http://localhost:3001
 
 ---
 
@@ -335,9 +321,9 @@ FurStay uses a **Layered Architecture** (N-Tier), consisting of four layers:
 
 2. **Action Layer** — Next.js Server Actions. Responsible solely for parsing `FormData`, calling the service layer, and triggering cache revalidation. Acts as the HTTP boundary adapter.
 
-3. **Service Layer** — Pure TypeScript functions (`job-service`, `sitter-service`, `verification-service`, `auth-service`). Contains all business rules, state machine guards, and domain validation. Has no dependency on HTTP, cookies, or React.
+3. **Service Layer** — Pure TypeScript functions (`job-service`, `sitter-service`, `verification-service`). Contains all domain business rules, state machine guards, and validation. Has no dependency on HTTP, cookies, FormData, or React. (`auth-service` lives outside this layer — it is called directly by API routes and calls Prisma without going through a service or repository.)
 
-4. **Data Access Layer** — Repository objects for read queries and direct Prisma calls for writes. The only layer allowed to import from `@/lib/prisma`.
+4. **Data Access Layer** — Repository objects that abstract read and write queries (`job-repo`, `pet-repo`, `sitter-repo`, `admin-repo`). Services also call Prisma directly for domain-specific writes; admin actions call Prisma directly for moderation operations that have no dedicated service.
 
 ---
 
@@ -348,7 +334,7 @@ FurStay uses a **Layered Architecture** (N-Tier), consisting of four layers:
 | Role-based access control | `requireRole()` in the Action layer enforces authentication before any service call. Routes are grouped by role under `/owner`, `/sitter`, `/admin` |
 | Job state machine integrity | All transitions live in `job-service.ts`. Every function uses a `requireOwnedJob` guard that throws explicitly — no silent failures |
 | Sitter verification gate | `applyForJob` checks profile existence → verification status → ban status → job status in sequence. The UI cannot bypass these checks because they live in the service, not the component |
-| Location privacy | Repositories filter `location` from the job board query; it appears only in assignment queries after FUNDED status |
+| Location privacy | The job board page does not render `location`; it is displayed only on the sitter assignments page after FUNDED status — a presentation-layer privacy control. The repository returns the full job record; the page component simply omits the field. |
 | Testability | The service layer takes plain typed arguments (no FormData, no sessions). Vitest can call `rateJob("owner-1", "job-1", 5)` directly with mocked Prisma — no Next.js server required |
 
 ---
@@ -369,9 +355,9 @@ Service functions throw `Error` with descriptive messages. Actions catch these a
 
 **Security Practices**
 - Passwords are bcrypt-hashed (cost factor 10) before storage
-- Sessions use signed JWT stored in `httpOnly`, `secure`, `sameSite=lax` cookies — inaccessible to JavaScript
+- Sessions use signed JWT stored in `httpOnly`, `sameSite=lax` cookies — inaccessible to JavaScript (`secure` flag is `false` for local HTTP development)
 - All server actions call `requireRole()` as their first line — a missing or wrong role redirects before any data is read
-- Location data is withheld from sitters until the job reaches FUNDED status (enforced in the repository query, not just the UI)
+- Location data is not displayed to sitters on the job board; it appears only in the assignments page after FUNDED status (presentation-layer control)
 
 **Naming Conventions**
 - Files: `kebab-case` (`job-service.ts`, `pet-repository.ts`)
@@ -379,7 +365,7 @@ Service functions throw `Error` with descriptive messages. Actions catch these a
 - Server Actions: suffixed with `Action` (`selectSitterAction`) to distinguish the HTTP boundary from the pure service function (`selectSitter`)
 
 **Reusable Components**
-`AppShell` provides role-aware navigation for all three dashboards. `Card`, `Button`, `Badge`, `StarDisplay` are shared UI primitives. `JobStatusBadge` and `ApplicationStatusBadge` centralise status-to-colour mapping in one place.
+`AppShell` provides role-aware navigation for all three dashboards. `Card`, `Button`, `Badge`, `StarDisplay` are shared UI primitives. `JobStatusBadge`, `ApplicationStatusBadge`, and `VerificationStatusBadge` centralise status-to-colour mapping in one place.
 
 **Automated Tests**
 23 Vitest integration tests cover every business rule in isolation. Shared fixtures in `tests/helpers/mocks.ts` (`makeJob`, `makeApprovedSitter`, `resetMocks`) keep each test case concise and focused on a single scenario.
@@ -445,3 +431,6 @@ OPEN ──(select sitter)──▶ WAITING ──(confirm payment)──▶ FUN
 | `verification-service.ts` | 2 | 10 | 2 |
 
 Extracting business logic into the Service layer reduced action file size by ~35% on average and eliminated all functions with cyclomatic complexity > 4, which maps to green buildings in CodeCharta visualisation.
+
+
+![code charta](public/codecharta.png)
