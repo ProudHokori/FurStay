@@ -171,36 +171,7 @@ AUTH_SECRET="replace-with-a-long-random-secret-at-least-32-chars"
 
 ## 6. How to Run the System
 
-### Option A — Docker (recommended, zero local PostgreSQL setup)
-
-This starts PostgreSQL, the Next.js dev server, Prisma Studio, and Adminer in one command.
-
-```bash
-# 1. Start all services
-docker compose up -d
-
-# 2. Wait ~20 seconds for the database to initialise, then run migrations
-docker exec furstay-web npx prisma migrate deploy
-
-# 3. Seed the database with demo data
-docker exec furstay-web npm run prisma:seed
-```
-
-| Service | URL |
-|---|---|
-| App | http://localhost:3001 |
-| Prisma Studio | http://localhost:5555 |
-| Adminer (DB GUI) | http://localhost:8081 |
-
-To stop all services:
-
-```bash
-docker compose down
-```
-
----
-
-### Option B — Local (Node.js + local PostgreSQL)
+### Local (Node.js + local PostgreSQL)
 
 ```bash
 # 1. Start only the database container
@@ -222,7 +193,22 @@ npm run prisma:seed
 npm run dev
 ```
 
-App will be available at http://localhost:3001
+| Service | URL |
+|---|---|
+| App | http://localhost:3001 |
+| Prisma Studio | http://localhost:5555 |
+| Adminer (DB GUI) | http://localhost:8081 |
+
+Start all services:
+```bash
+docker compose up
+```
+
+To stop all services:
+
+```bash
+docker compose down
+```
 
 ---
 
