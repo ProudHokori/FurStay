@@ -396,17 +396,7 @@ AppShell (layout wrapper, role-aware nav)
 
 **Database relationships**
 
-```
-User ──< JobPost            (as owner)
-User ──< JobApplication     (as sitter)
-User ──< WorkProof          (as sitter)
-User ─── SitterProfile      (1:1)
-User ──< VerificationRequest
-
-Pet ──< JobPost
-JobPost ──< JobApplication
-JobPost ──< WorkProof
-```
+![code charta](public/furstay-er-diagram.png)
 
 **Job state machine**
 
